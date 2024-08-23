@@ -116,6 +116,7 @@ pub mod types;
 #[doc(hidden)]
 pub mod utils;
 
+use reqwest::Proxy;
 pub use reqwest::{header::HeaderMap, StatusCode};
 
 #[derive(Debug)]
@@ -296,6 +297,7 @@ impl Client {
         redirect_uri: R,
         token: T,
         refresh_token: Q,
+        proxy: Option<Proxy>,
     ) -> Self
     where
         I: ToString,
@@ -307,10 +309,14 @@ impl Client {
         // Retry up to 3 times with increasing intervals between attempts.
         let retry_policy =
             reqwest_retry::policies::ExponentialBackoff::builder().build_with_max_retries(3);
-        let client = reqwest::Client::builder()
-            .redirect(reqwest::redirect::Policy::none())
-            .build();
-        match client {
+        let mut client = reqwest::Client::builder()
+            .redirect(reqwest::redirect::Policy::none());
+        // set proxy if provided
+        if let Some(p) = proxy {
+            client = client.proxy(p);
+        }
+
+        match client.build() {
             Ok(c) => {
                 let client = reqwest_middleware::ClientBuilder::new(c)
                     // Trace HTTP requests. See the tracing crate to make use of these traces.
