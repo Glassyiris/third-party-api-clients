@@ -555,7 +555,7 @@ impl Client {
                 client = client.proxy(proxy.clone());
             }
 
-            let client = client.build().unwrap();
+            let client = client.build()?;
             client
                 .post(TOKEN_ENDPOINT)
                 .headers(headers)
