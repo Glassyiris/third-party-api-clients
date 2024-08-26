@@ -233,6 +233,8 @@ pub struct Client {
 
     auto_refresh: bool,
     client: reqwest_middleware::ClientWithMiddleware,
+
+    proxy: Option<Proxy>,
 }
 
 use schemars::JsonSchema;
@@ -312,8 +314,8 @@ impl Client {
         let mut client = reqwest::Client::builder()
             .redirect(reqwest::redirect::Policy::none());
         // set proxy if provided
-        if let Some(p) = proxy {
-            client = client.proxy(p);
+        if let Some(p) = proxy.as_ref() {
+            client = client.proxy(p.clone());
         }
 
         match client.build() {
@@ -344,6 +346,7 @@ impl Client {
 
                     auto_refresh: false,
                     client,
+                    proxy,
                 }
             }
             Err(e) => panic!("creating reqwest client failed: {:?}", e),
@@ -449,7 +452,7 @@ impl Client {
     /// This function will panic if an application secret can not be parsed from the encoded key
     ///
     /// This function will panic if the internal http client fails to create
-    pub async fn new_from_env<T, R>(token: T, refresh_token: R) -> Self
+    pub async fn new_from_env<T, R>(token: T, refresh_token: R, proxy: Option<Proxy>) -> Self
     where
         T: ToString,
         R: ToString,
@@ -461,23 +464,28 @@ impl Client {
         let secret = yup_oauth2::parse_application_secret(decoded_google_key)
             .expect("failed to read from google credential env var");
 
-        let client = reqwest::Client::builder()
-            .redirect(reqwest::redirect::Policy::none())
-            .build();
+        let mut client = reqwest::Client::builder()
+            .redirect(reqwest::redirect::Policy::none());
+
+        if let Some(p) = proxy.as_ref() {
+            client =  client.proxy(p.clone());
+        }
+        let client = client.build();
         let retry_policy =
             reqwest_retry::policies::ExponentialBackoff::builder().build_with_max_retries(3);
 
         match client {
             Ok(c) => {
-                let client = reqwest_middleware::ClientBuilder::new(c)
+                let mut client = reqwest_middleware::ClientBuilder::new(c)
                     // Trace HTTP requests. See the tracing crate to make use of these traces.
                     .with(reqwest_tracing::TracingMiddleware::default())
                     // Retry failed requests.
                     .with(reqwest_conditional_middleware::ConditionalMiddleware::new(
                         reqwest_retry::RetryTransientMiddleware::new_with_policy(retry_policy),
                         |req: &reqwest::Request| req.try_clone().is_some(),
-                    ))
-                    .build();
+                    ));
+
+                let client = client.build();
 
                 let host = RootDefaultServer::default().default_url().to_string();
 
@@ -494,6 +502,7 @@ impl Client {
                     })),
                     auto_refresh: false,
                     client,
+                    proxy,
                 }
             }
             Err(e) => panic!("creating reqwest client failed: {:?}", e),
@@ -541,7 +550,12 @@ impl Client {
                 ("client_secret", &self.client_secret),
                 ("redirect_uri", &self.redirect_uri),
             ];
-            let client = reqwest::Client::new();
+            let mut client = reqwest::ClientBuilder::new();
+            if let Some(proxy) = &self.proxy {
+                client = client.proxy(proxy.clone());
+            }
+
+            let client = client.build().unwrap();
             client
                 .post(TOKEN_ENDPOINT)
                 .headers(headers)
