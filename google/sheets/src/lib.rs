@@ -582,7 +582,7 @@ impl Client {
     /// Get an access token from the code returned by the URL paramter sent to the
     /// redirect URL.
     pub async fn get_access_token(&mut self, code: &str, state: &str) -> ClientResult<AccessToken> {
-        let mut headers = reqwest::header::HeaderMap::new();
+        let mut headers = HeaderMap::new();
         headers.append(
             reqwest::header::ACCEPT,
             reqwest::header::HeaderValue::from_static("application/json"),
@@ -596,7 +596,12 @@ impl Client {
             ("redirect_uri", &self.redirect_uri),
             ("state", state),
         ];
-        let client = reqwest::Client::new();
+        let mut client = reqwest::ClientBuilder::new();
+        if let Some(proxy) = &self.proxy {
+            client = client.proxy(proxy.clone());
+        }
+
+        let client = client.build()?;
         let resp = client
             .post(TOKEN_ENDPOINT)
             .headers(headers)
