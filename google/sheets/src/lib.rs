@@ -550,7 +550,7 @@ impl Client {
                 ("client_secret", &self.client_secret),
                 ("redirect_uri", &self.redirect_uri),
             ];
-            let mut client = reqwest::ClientBuilder::new();
+            let mut client = reqwest::ClientBuilder::new().timeout(Duration::from_secs(30));
             if let Some(proxy) = &self.proxy {
                 client = client.proxy(proxy.clone());
             }
