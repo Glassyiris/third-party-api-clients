@@ -18,21 +18,21 @@ rustls-tls = ["reqwest/rustls-tls", "ring", "pem"]
 [dependencies]
 async-recursion = "^1.0"
 chrono = { version = "0.4.38", default-features = false, features = ["serde"] }
-dirs = { version = "^3.0.2", optional = true }
+dirs = { version = "5.0.1", optional = true }
 http = "1"
-jsonwebtoken = "8"
+jsonwebtoken = "9.3.0"
 log = { version = "^0.4", features = ["serde"] }
 mime = "0.3"
 openssl = { version = "0.10", default-features = false, optional = true }
-parse_link_header = "0.3.3"
-pem = { version = "1.1.0",  default-features = false, optional = true }
+parse_link_header = "0.4.0"
+pem = { version = "3.0.4",  default-features = false, optional = true }
 percent-encoding = "2.2"
 reqwest = { version = "0.12", default-features = false, features = ["json", "multipart"] }
-reqwest-conditional-middleware = "0.3"
-reqwest-middleware = { version = "0.3", features = ["multipart"] }
-reqwest-retry = "0.5"
+reqwest-conditional-middleware = "0.4.0"
+reqwest-middleware = { version = "0.4.0", features = ["multipart"] }
+reqwest-retry = "0.7.0"
 reqwest-tracing = "0.5"
-ring = { version = "0.16", default-features = false, optional = true }
+ring = { version = "0.17.8", default-features = false, optional = true }
 schemars = { version = "0.8", features = ["bytes", "chrono", "url", "uuid1"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
@@ -41,19 +41,19 @@ url = { version = "2", features = ["serde"] }
 bytes = { version = "1", features = ["serde"] }
 async-trait = "^0.1.80"
 uuid = { version = "1.1", features = ["serde", "v4"] }
-base64 = "^0.21"
-yup-oauth2 = "^8"
-thiserror = "1"
+base64 = "0.22.1"
+yup-oauth2 = "11.0.0"
+thiserror = "2.0.3"
 tokio = { version = "1.25.0", default-features = false }
 
 [dev-dependencies]
-base64 = "^0.21"
-dirs = "^3.0.2"
+base64 = "0.22.1"
+dirs = "5.0.1"
 nom_pem = "4"
 rand = "0.8.5"
-rsa = "0.8.1"
+rsa = "0.9.6"
 tokio = { version = "1.25.0", features = ["full", "test-util"] }
-wiremock = "0.5.17"
+wiremock = "0.6.2"
 
 [package.metadata.docs.rs]
 all-features = true
